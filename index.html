@@ -331,13 +331,23 @@
             try {
               setPrinting(true); setStatus('SEARCHING...');
               const dev = await bt.requestDevice({ 
-                filters: [{ namePrefix: 'ITPP' }, { namePrefix: 'P130' }], 
+                filters: [
+                  { namePrefix: 'ITPP' }, 
+                  { namePrefix: 'P130' },
+                  { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] }
+                ], 
                 optionalServices: ['0000ff00-0000-1000-8000-00805f9b34fb'] 
               });
+              
               setStatus('CONNECTING...');
               const srv = await dev.gatt.connect();
+              
+              setStatus('GETTING SERVICE...');
               const psrv = await srv.getPrimaryService('0000ff00-0000-1000-8000-00805f9b34fb');
+              
+              setStatus('GETTING CHAR...');
               const char = await psrv.getCharacteristic('0000ff02-0000-1000-8000-00805f9b34fb');
+              
               const enc = new TextEncoder();
               const cmds = [
                 0x1B, 0x40, 0x1B, 0x61, 0x01, 0x1B, 0x45, 0x01,
@@ -359,7 +369,12 @@
               setStatus('SUCCESS'); 
               setTimeout(() => { setPrinting(false); setStatus(''); }, 2000);
               await srv.disconnect();
-            } catch (e) { console.error(e); alert('Error printing: ' + e.message); setPrinting(false); setStatus(''); }
+            } catch (e) { 
+              console.error('Print Error:', e);
+              const errMsg = e && e.message ? e.message : String(e);
+              alert('Error printing: ' + errMsg); 
+              setPrinting(false); setStatus(''); 
+            }
           };
 
           return (
