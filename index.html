@@ -330,12 +330,9 @@
             if (!bt) { alert('Bluetooth not supported. Use Bluefy browser on iPad.'); return; }
             try {
               setPrinting(true); setStatus('SEARCHING...');
+              // Forced compatibility mode: acceptAllDevices to ensure ITPP130B shows up
               const dev = await bt.requestDevice({ 
-                filters: [
-                  { namePrefix: 'ITPP' }, 
-                  { namePrefix: 'P130' },
-                  { services: ['0000ff00-0000-1000-8000-00805f9b34fb'] }
-                ], 
+                acceptAllDevices: true,
                 optionalServices: ['0000ff00-0000-1000-8000-00805f9b34fb'] 
               });
               
@@ -369,10 +366,10 @@
               setStatus('SUCCESS'); 
               setTimeout(() => { setPrinting(false); setStatus(''); }, 2000);
               await srv.disconnect();
-            } catch (e) { 
-              console.error('Print Error:', e);
-              const errMsg = e && e.message ? e.message : String(e);
-              alert('Error printing: ' + errMsg); 
+            } catch (error) { 
+              console.error('Print Error:', error);
+              const errMsg = error && error.message ? error.message : String(error);
+              alert('Error: ' + errMsg); 
               setPrinting(false); setStatus(''); 
             }
           };
